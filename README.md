@@ -1,102 +1,103 @@
 # Seller Trust Map
 
-Diploma project: a service for seller reputation analysis and product rating authenticity checks on marketplaces.
+Дипломный проект: сервис для анализа репутации продавцов и проверки достоверности рейтинга карточек товара на маркетплейсах.
 
-## Stack
+## Стек
 
 - Go backend API
 - Python FastAPI anti-fraud service
 - PostgreSQL
 - Redis
-- Browser extension
+- браузерное расширение
 - Docker Compose
 
-## Project structure
+## Структура проекта
 
-- `backend-go` - main API, URL parsing, trust score calculation, PostgreSQL persistence
-- `ml-service` - anomaly and suspicious review analysis
-- `browser-extension` - popup UI for checking the current product page
-- `infra/postgres` - schema and seed data
-- `docs` - architecture and diploma notes
-- `demo` - local demo page
+- `backend-go` — основной API, обработка URL, расчет trust score, работа с PostgreSQL
+- `ml-service` — анализ аномалий и подозрительных отзывов
+- `browser-extension` — popup-интерфейс для проверки товара по текущей вкладке
+- `infra/postgres` — SQL-схема и seed-данные
+- `docs` — архитектура и материалы по проекту
+- `demo` — локальная demo-страница
 
-## What is implemented
+## Что уже реализовано
 
-- trust score calculation for seller and product
-- support for real product URLs from `OZON`, `Wildberries`, `Yandex Market`
-- fallback analysis for unknown product IDs from real links
-- PostgreSQL schema for marketplaces, sellers, products, reviews, metrics, runs, snapshots
-- storing completed checks in PostgreSQL
-- recent checks endpoint: `GET /api/v1/checks/recent`
-- per-user history using `client_id`
-- backend-side page enrichment from real marketplace HTML
-- Redis cache with TTL 1 hour
-- browser extension popup with `Check product` button
+- расчет `trust score` для продавца и товара
+- поддержка реальных ссылок `OZON`, `Wildberries`, `Яндекс Маркета`
+- fallback-анализ для неизвестных `product id`
+- PostgreSQL-схема для маркетплейсов, продавцов, товаров, отзывов, метрик и истории анализа
+- сохранение результатов проверок в PostgreSQL
+- endpoint последних проверок: `GET /api/v1/checks/recent`
+- персональная история проверок через `client_id`
+- backend-side page enrichment по HTML страницы товара
+- Redis-кеш с TTL 1 час
+- браузерное расширение с кнопкой `Проверить товар`
+- локальный dashboard для демонстрации проекта
 
-## Quick start with Docker
+## Быстрый запуск через Docker
 
 ```bash
 docker compose up --build
 ```
 
-After startup:
+После запуска будут доступны:
 
 - backend API: `http://localhost:8080`
 - ML service: `http://localhost:8001`
 - health check: `http://localhost:8080/health`
-- local dashboard: `http://localhost:8080/dashboard`
+- локальный dashboard: `http://localhost:8080/dashboard`
 
-## Using your local PostgreSQL
+## Работа с локальным PostgreSQL
 
-If PostgreSQL is already installed on your PC:
+Если PostgreSQL уже установлен на компьютере:
 
-1. Create database `seller_trust`
-2. Run [infra/postgres/init.sql](C:/Users/kiril/OneDrive/Документы/diplom/infra/postgres/init.sql) in pgAdmin4
-3. Set environment variable before starting backend:
+1. Создай базу данных `seller_trust`
+2. Выполни SQL-скрипт [init.sql](C:/Users/kiril/OneDrive/Документы/diplom/infra/postgres/init.sql) через pgAdmin4
+3. Перед запуском backend задай переменную окружения:
 
 ```powershell
 $env:DATABASE_URL="postgres://postgres:postgres@localhost:5432/seller_trust?sslmode=disable"
 ```
 
-In this mode backend will:
+В этом режиме backend будет:
 
-- read sellers, products and reviews from PostgreSQL
-- save analysis runs and trust snapshots
-- return recent checks history
+- читать продавцов, товары и отзывы из PostgreSQL
+- сохранять `analysis runs` и `trust snapshots`
+- отдавать историю последних проверок
 
-If `DATABASE_URL` is not set or PostgreSQL is unavailable, backend falls back to generated demo data.
+Если `DATABASE_URL` не задан или PostgreSQL недоступен, backend использует fallback-данные.
 
-## Browser extension flow
+## Сценарий работы расширения
 
-1. Open `chrome://extensions/`
-2. Enable developer mode
-3. Click `Load unpacked`
-4. Select [browser-extension](C:/Users/kiril/OneDrive/Документы/diplom/browser-extension)
-5. Open a product page on `OZON`, `Wildberries` or `Yandex Market`
-6. Click the extension icon
-7. Click `Проверить товар`
+1. Открой `chrome://extensions/`
+2. Включи режим разработчика
+3. Нажми `Load unpacked`
+4. Выбери папку [browser-extension](C:/Users/kiril/OneDrive/Документы/diplom/browser-extension)
+5. Открой карточку товара на `OZON`, `Wildberries` или `Яндекс Маркете`
+6. Нажми на иконку расширения
+7. Нажми `Проверить товар`
 
-The popup automatically takes the URL of the active tab and sends it to backend.
+Popup автоматически берет URL текущей вкладки и отправляет его в backend.
 
-## Local defense demo
+## Локальная демонстрация для защиты
 
-For a simple local presentation:
+Для простой локальной демонстрации:
 
-1. Start the project with `docker compose up --build`
-2. Open `http://localhost:8080/dashboard`
-3. Paste a real marketplace product URL
-4. Run analysis
-5. Show:
-   - calculated trust score
-   - rating authenticity
-   - risk reasons
-   - your personal checks history
-   - page signals extracted by backend from HTML
-   - persisted backend flow
+1. Запусти проект через `docker compose up --build`
+2. Открой `http://localhost:8080/dashboard`
+3. Вставь реальную ссылку товара
+4. Запусти анализ
+5. Покажи:
+   - итоговый `trust score`
+   - достоверность рейтинга
+   - причины риска
+   - персональную историю проверок
+   - сигналы страницы, извлеченные backend из HTML
+   - сохранение результатов в backend-слой
 
-## API examples
+## Примеры API
 
-Check by product URL:
+Проверка по ссылке товара:
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/trust/analyze-url \
@@ -104,38 +105,47 @@ curl -X POST http://localhost:8080/api/v1/trust/analyze-url \
   -d "{\"product_url\":\"https://www.ozon.ru/product/test-2530782332/\"}"
 ```
 
-Recent checks:
+Последние проверки:
 
 ```bash
 curl http://localhost:8080/api/v1/checks/recent
 ```
 
-Overview:
+Сводка:
 
 ```bash
 curl http://localhost:8080/api/v1/overview
 ```
 
-## Main scenario
+## Основной сценарий системы
 
-1. User opens a marketplace product page
-2. Browser extension gets the active tab URL
-3. Go backend detects marketplace and extracts product ID from URL
-4. Backend tries PostgreSQL first
-5. If product is missing in DB, backend builds fallback product/seller data from URL/product ID
-6. Backend calls Python anti-fraud service
-7. Backend calculates final trust score
-8. Result is cached in Redis and stored in PostgreSQL history tables
-9. Checks can be filtered per local user/browser session via `client_id`
-9. Extension shows trust score, authenticity score and risk reasons
+1. Пользователь открывает страницу товара на маркетплейсе
+2. Расширение или dashboard получает URL товара
+3. Go backend определяет маркетплейс и извлекает `product id`
+4. Backend сначала пытается получить данные из PostgreSQL
+5. Если товара нет в БД, используется fallback-модель по URL и `product id`
+6. Backend пытается получить дополнительные сигналы из HTML страницы товара
+7. Backend вызывает Python anti-fraud сервис
+8. Backend рассчитывает итоговый `trust score`
+9. Результат кешируется в Redis и сохраняется в PostgreSQL
+10. История проверок может фильтроваться по `client_id`
+11. Клиент получает trust score, authenticity score и причины риска
 
-## Current status
+## Текущее состояние проекта
 
-This is now a solid MVP for a diploma project:
+Сейчас это уже хороший локальный MVP для дипломного проекта:
 
-- real URL-based check flow exists
-- data persistence exists
-- anti-fraud service exists
-- browser extension exists
+- есть реальный URL-based сценарий проверки
+- есть хранение данных и истории
+- есть anti-fraud сервис
+- есть браузерное расширение
+- есть локальный сайт для демонстрации
 
-The next major step would be real marketplace page parsing and data collection instead of fallback/generated product data.
+## Дальнейшее развитие
+
+Следующий крупный шаг:
+
+- полноценные marketplace-specific парсеры для `OZON`, `WB`, `Яндекс Маркета`
+- отдельная аналитика продавца
+- более глубокий анализ отзывов и рейтингов
+- расширение веб-интерфейса до полноценного личного кабинета
