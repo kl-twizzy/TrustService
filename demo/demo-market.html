@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo Market</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      color: #17263b;
+      background:
+        radial-gradient(circle at top left, rgba(255, 193, 94, 0.22), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(70, 163, 255, 0.18), transparent 30%),
+        #f6f8fb;
+    }
+
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 28px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(23, 38, 59, 0.08);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 24px 60px rgba(23, 38, 59, 0.08);
+    }
+
+    .product-shot {
+      min-height: 360px;
+      border-radius: 22px;
+      background:
+        linear-gradient(160deg, rgba(255, 214, 128, 0.8), rgba(255, 255, 255, 0.4)),
+        linear-gradient(220deg, rgba(99, 170, 255, 0.8), rgba(255, 255, 255, 0));
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #e9f3ff;
+      color: #20507f;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: 38px;
+      line-height: 1.05;
+    }
+
+    .rating {
+      font-size: 18px;
+      font-weight: 700;
+      color: #c47b00;
+      margin-bottom: 18px;
+    }
+
+    .meta,
+    .description {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #4d6177;
+    }
+
+    .meta {
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body
+  data-marketplace="demo-market"
+  data-seller-id="seller-202"
+  data-product-id="product-777"
+>
+  <main class="page">
+    <section class="hero">
+      <div class="product-shot"></div>
+      <div>
+        <span class="eyebrow">Demo Marketplace</span>
+        <h1>Smart Watch Lite</h1>
+        <div class="rating">4.8 ★ • 910 отзывов</div>
+        <div class="meta">Продавец: BestElectro • Категория: electronics</div>
+        <div class="description">
+          Демонстрационная страница для дипломного проекта. Если загрузить браузерное расширение
+          из папки <code>browser-extension</code>, справа появится карточка доверия продавца и
+          достоверности рейтинга.
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

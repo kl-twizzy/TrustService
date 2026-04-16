@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.gocache/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.exe
+.DS_Store
+.idea/
+.vscode/
+tmp/
+coverage/

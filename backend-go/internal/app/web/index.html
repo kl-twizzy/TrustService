@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Trust Map Dashboard</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: rgba(255, 255, 255, 0.88);
+      --line: rgba(19, 34, 56, 0.08);
+      --text: #132238;
+      --muted: #5a718b;
+      --warm: #ffaf45;
+      --warm-2: #ff8c42;
+      --ok: #dff7e8;
+      --warn: #fff1cb;
+      --bad: #ffe1df;
+      --soft: #eef6ff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 188, 84, 0.24), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(84, 165, 255, 0.18), transparent 30%),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+
+    .hero, .result-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    .result-grid { margin-top: 18px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 18px 50px rgba(19, 34, 56, 0.08);
+    }
+
+    .eyebrow, .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .eyebrow { background: #e8f2ff; color: #21517f; }
+    .pill { margin-bottom: 10px; font-size: 12px; }
+    .pill.high { background: var(--ok); color: #12643a; }
+    .pill.medium { background: var(--warn); color: #8d5b00; }
+    .pill.low { background: var(--bad); color: #a12522; }
+
+    h1 {
+      margin: 14px 0 10px;
+      font-size: 40px;
+      line-height: 1.02;
+    }
+
+    .subtitle, .helper, .meta, .empty {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .field-label, .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      margin-bottom: 10px;
+    }
+
+    .url-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, var(--warm) 0%, var(--warm-2) 100%);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: progress;
+    }
+
+    .stats, .score-grid, .signal-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stats { grid-template-columns: repeat(3, 1fr); margin-top: 16px; }
+    .score-grid { grid-template-columns: repeat(2, 1fr); margin-bottom: 12px; }
+    .signal-grid { grid-template-columns: repeat(2, 1fr); margin-top: 12px; }
+
+    .stat, .score-box, .signal-box {
+      border-radius: 18px;
+      padding: 14px;
+      background: linear-gradient(180deg, #fff8eb 0%, #eef7ff 100%);
+    }
+
+    .signal-box {
+      background: var(--soft);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value, .score-value {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      line-height: 1.55;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .history-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .history-title {
+      font-weight: 700;
+    }
+
+    .history-meta {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f3f8ff;
+      color: #305575;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 920px) {
+      .hero, .result-grid, .stats, .signal-grid, .url-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="card">
+        <div class="toolbar">
+          <span class="eyebrow">Backend Demo</span>
+          <span id="clientChip" class="chip">Client: loading...</span>
+        </div>
+        <h1>Seller Trust Map</h1>
+        <p class="subtitle">Локальный сайт сервиса. История хранится отдельно для текущего пользователя браузера, а основная логика проверки накрутки и отзывов выполняется на backend.</p>
+
+        <label class="field-label" for="productUrl">Ссылка товара</label>
+        <div class="url-row">
+          <input id="productUrl" type="text" placeholder="https://www.ozon.ru/product/..." />
+          <button id="checkBtn">Проверить</button>
+        </div>
+        <div id="status" class="helper">Вставь ссылку товара с OZON, Wildberries или Яндекс Маркета и запусти проверку.</div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Мои проверки</div>
+            <div id="totalChecks" class="stat-value">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Средний trust score</div>
+            <div id="avgTrust" class="stat-value">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Подозрительных</div>
+            <div id="suspiciousCount" class="stat-value">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Сводка по пользователю</div>
+        <div id="summary" class="meta">Здесь будет агрегированная статистика по последним проверкам именно текущего пользователя.</div>
+      </div>
+    </section>
+
+    <section class="result-grid">
+      <div class="card">
+        <div class="section-title">Последний анализ товара</div>
+        <div id="resultEmpty" class="empty">Пока результатов нет. После проверки товара здесь появится детальный разбор.</div>
+        <div id="resultBlock" class="hidden">
+          <div id="trustLevelPill" class="pill">risk</div>
+          <div class="score-grid">
+            <div class="score-box">
+              <div class="stat-label">Trust score</div>
+              <div id="trustScore" class="score-value">0</div>
+            </div>
+            <div class="score-box">
+              <div class="stat-label">Authenticity</div>
+              <div id="authenticity" class="score-value">0</div>
+            </div>
+          </div>
+          <div id="resultMeta" class="meta"></div>
+          <div id="recommendation" class="helper" style="margin-top:10px;"></div>
+          <div class="section-title" style="margin-top:14px;">Причины риска</div>
+          <ul id="reasons"></ul>
+
+          <div class="section-title" style="margin-top:16px;">Сигналы страницы</div>
+          <div id="pageSignals" class="signal-grid"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">История моих проверок</div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const productUrlInput = document.getElementById("productUrl");
+    const checkBtn = document.getElementById("checkBtn");
+    const statusNode = document.getElementById("status");
+    const totalChecksNode = document.getElementById("totalChecks");
+    const avgTrustNode = document.getElementById("avgTrust");
+    const suspiciousCountNode = document.getElementById("suspiciousCount");
+    const summaryNode = document.getElementById("summary");
+    const historyListNode = document.getElementById("historyList");
+    const resultEmptyNode = document.getElementById("resultEmpty");
+    const resultBlockNode = document.getElementById("resultBlock");
+    const trustLevelPillNode = document.getElementById("trustLevelPill");
+    const trustScoreNode = document.getElementById("trustScore");
+    const authenticityNode = document.getElementById("authenticity");
+    const resultMetaNode = document.getElementById("resultMeta");
+    const recommendationNode = document.getElementById("recommendation");
+    const reasonsNode = document.getElementById("reasons");
+    const pageSignalsNode = document.getElementById("pageSignals");
+    const clientChipNode = document.getElementById("clientChip");
+
+    const clientId = getClientId();
+    clientChipNode.textContent = `Client: ${clientId}`;
+
+    checkBtn.addEventListener("click", runCheck);
+    bootstrap();
+
+    async function bootstrap() {
+      await loadOverview();
+      await loadHistory();
+    }
+
+    async function runCheck() {
+      const productUrl = productUrlInput.value.trim();
+      if (!productUrl) {
+        statusNode.textContent = "Нужно вставить ссылку товара.";
+        return;
+      }
+
+      setLoading(true, "Проверяю товар через backend...");
+      try {
+        const response = await fetch("/api/v1/trust/analyze-url", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Client-Id": clientId
+          },
+          body: JSON.stringify({ product_url: productUrl })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Ошибка анализа");
+        }
+
+        renderResult(data);
+        await loadOverview();
+        await loadHistory();
+        setLoading(false, "Проверка завершена.");
+      } catch (error) {
+        setLoading(false, error.message || "Не удалось выполнить проверку.");
+      }
+    }
+
+    async function loadOverview() {
+      const response = await fetch(`/api/v1/overview?client_id=${encodeURIComponent(clientId)}`);
+      const data = await response.json();
+      totalChecksNode.textContent = data.total_checks || 0;
+      avgTrustNode.textContent = `${Math.round(data.average_trust_score || 0)}`;
+      suspiciousCountNode.textContent = data.suspicious_count || 0;
+      summaryNode.textContent = buildSummary(data);
+    }
+
+    async function loadHistory() {
+      const response = await fetch(`/api/v1/checks/recent?client_id=${encodeURIComponent(clientId)}`);
+      const items = await response.json();
+      historyListNode.innerHTML = "";
+
+      if (!items.length) {
+        historyListNode.innerHTML = '<div class="empty">История этого пользователя пока пуста. После первой проверки записи появятся здесь.</div>';
+        return;
+      }
+
+      for (const item of items) {
+        const node = document.createElement("article");
+        node.className = "history-item";
+        node.innerHTML = `
+          <div class="history-top">
+            <div class="history-title">${escapeHtml(item.product_title || "Unknown product")}</div>
+            <div class="pill ${item.trust_level}">${trustLabel(item.trust_level)}</div>
+          </div>
+          <div class="history-meta">${escapeHtml(item.seller_name || "Unknown seller")}</div>
+          <div class="history-meta">${escapeHtml(item.marketplace)} • score ${item.trust_score}/100 • authenticity ${item.rating_authenticity}/100</div>
+          <div class="history-meta">${escapeHtml(item.checked_at || "")}</div>
+        `;
+        historyListNode.appendChild(node);
+      }
+    }
+
+    function renderResult(data) {
+      resultEmptyNode.classList.add("hidden");
+      resultBlockNode.classList.remove("hidden");
+      trustLevelPillNode.className = `pill ${data.trust_level}`;
+      trustLevelPillNode.textContent = trustLabel(data.trust_level);
+      trustScoreNode.textContent = `${data.trust_score}/100`;
+      authenticityNode.textContent = `${data.rating_authenticity}/100`;
+      resultMetaNode.textContent = `${data.marketplace} • ${data.product.title} • ${data.seller.name}`;
+      recommendationNode.textContent = data.recommendation;
+
+      reasonsNode.innerHTML = "";
+      for (const reason of data.reasons || []) {
+        const li = document.createElement("li");
+        li.textContent = reason;
+        reasonsNode.appendChild(li);
+      }
+
+      renderPageSignals(data.page_signals || {});
+    }
+
+    function renderPageSignals(signals) {
+      pageSignalsNode.innerHTML = "";
+      const items = [
+        ["HTML fetched", signals.fetch_successful ? "yes" : "no"],
+        ["Structured data", signals.structured_data_found ? "found" : "not found"],
+        ["Parsed title", signals.product_title || "not extracted"],
+        ["Parsed rating", signals.parsed_rating || "n/a"],
+        ["Parsed reviews", signals.parsed_review_count || "n/a"],
+        ["Suspicious blocks", signals.suspicious_text_blocks || 0]
+      ];
+
+      for (const [label, value] of items) {
+        const node = document.createElement("div");
+        node.className = "signal-box";
+        node.innerHTML = `<div class="stat-label">${escapeHtml(label)}</div><div>${escapeHtml(value)}</div>`;
+        pageSignalsNode.appendChild(node);
+      }
+    }
+
+    function buildSummary(data) {
+      if (!data.total_checks) {
+        return "После первой проверки здесь появятся агрегированные показатели по trust score, suspicious товарам и истории анализа текущего пользователя.";
+      }
+      return `Проверок: ${data.total_checks}. High: ${data.high_trust_count}, Medium: ${data.medium_trust_count}, Low: ${data.low_trust_count}. Средняя достоверность рейтинга: ${Math.round(data.average_authenticity || 0)}/100.`;
+    }
+
+    function setLoading(isLoading, message) {
+      checkBtn.disabled = isLoading;
+      checkBtn.textContent = isLoading ? "Проверяем..." : "Проверить";
+      statusNode.textContent = message;
+    }
+
+    function trustLabel(level) {
+      if (level === "high") return "Низкий риск";
+      if (level === "medium") return "Умеренный риск";
+      return "Высокий риск";
+    }
+
+    function getClientId() {
+      const key = "seller-trust-map-client-id";
+      let value = localStorage.getItem(key);
+      if (!value) {
+        value = "web-" + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem(key, value);
+      }
+      return value;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>

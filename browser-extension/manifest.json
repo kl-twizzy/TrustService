@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Seller Trust Map",
+  "version": "0.2.0",
+  "description": "Checks marketplace product links and shows seller trust and rating authenticity.",
+  "permissions": ["activeTab", "storage", "tabs"],
+  "host_permissions": ["http://localhost:8080/*", "<all_urls>"],
+  "action": {
+    "default_title": "Seller Trust Map",
+    "default_popup": "popup.html"
+  }
+}

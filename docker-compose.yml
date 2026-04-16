@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: seller_trust
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  ml-service:
+    build:
+      context: ./ml-service
+    ports:
+      - "8001:8001"
+
+  backend-go:
+    build:
+      context: ./backend-go
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/seller_trust?sslmode=disable
+      REDIS_ADDR: redis:6379
+      ML_SERVICE_URL: http://ml-service:8001
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - ml-service
+
+volumes:
+  postgres_data:
