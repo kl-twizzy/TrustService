@@ -177,6 +177,8 @@ CREATE TABLE IF NOT EXISTS browser_checks (
     marketplace_id UUID REFERENCES marketplaces(id) ON DELETE SET NULL,
     product_id UUID REFERENCES products(id) ON DELETE SET NULL,
     seller_id UUID REFERENCES sellers(id) ON DELETE SET NULL,
+    product_title TEXT,
+    seller_name TEXT,
     checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     client_type VARCHAR(32) NOT NULL DEFAULT 'browser_extension',
     client_id VARCHAR(128),

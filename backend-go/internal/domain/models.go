@@ -88,6 +88,9 @@ type RecentCheck struct {
 
 type PageSignals struct {
 	FetchSuccessful      bool    `json:"fetch_successful"`
+	FetchStatusCode      int     `json:"fetch_status_code,omitempty"`
+	FetchBlocked         bool    `json:"fetch_blocked"`
+	FetchError           string  `json:"fetch_error,omitempty"`
 	ProductTitle         string  `json:"product_title,omitempty"`
 	SellerName           string  `json:"seller_name,omitempty"`
 	ParsedRating         float64 `json:"parsed_rating,omitempty"`

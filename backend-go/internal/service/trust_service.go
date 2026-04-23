@@ -135,6 +135,9 @@ func (s *TrustService) AnalyzeURLWithContext(ctx context.Context, rawURL string,
 			analysis.AuthenticityScore -= 6
 		}
 	}
+	if pageSignals.FetchBlocked {
+		analysis.Warnings = append(analysis.Warnings, "Marketplace blocked direct backend page fetch, URL-derived signals were used")
+	}
 
 	result := buildTrustResponse(parsed.Marketplace, seller, product, analysis)
 	result.ClientID = analyzeCtx.ClientID

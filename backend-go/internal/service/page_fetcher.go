@@ -1,9 +1,12 @@
 package service
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -31,9 +34,16 @@ type productStructuredData struct {
 var (
 	jsonLDPattern       = regexp.MustCompile(`(?is)<script[^>]*type=["']application/ld\+json["'][^>]*>(.*?)</script>`)
 	titlePattern        = regexp.MustCompile(`(?is)<title[^>]*>(.*?)</title>`)
-	suspiciousTextParts = []string{"лучший лучший", "best best", "рекомендую всем", "топ за свои деньги", "пришел быстро"}
 	ratingPattern       = regexp.MustCompile(`"ratingValue"\s*:\s*"?([0-9]+(?:\.[0-9]+)?)"?`)
 	reviewCountPattern  = regexp.MustCompile(`"reviewCount"\s*:\s*"?([0-9]+)"?`)
+	spacePattern        = regexp.MustCompile(`\s+`)
+	suspiciousTextParts = []string{
+		"лучший лучший",
+		"best best",
+		"рекомендую всем",
+		"топ за свои деньги",
+		"пришел быстро",
+	}
 )
 
 func NewPageFetcher() *PageFetcher {
@@ -50,42 +60,51 @@ func NewPageFetcher() *PageFetcher {
 }
 
 func (f *PageFetcher) Enrich(ctx context.Context, rawURL string, product domain.Product, seller domain.Seller, reviews []domain.Review) (domain.PageSignals, domain.Product, domain.Seller, []domain.Review) {
+	signals := domain.PageSignals{}
+
+	if title := deriveTitleFromURL(rawURL); title != "" {
+		signals.ProductTitle = title
+		if len(product.Title) == 0 || isGenericTitle(product.Title) {
+			product.Title = title
+		}
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
-		return domain.PageSignals{}, product, seller, reviews
+		signals.FetchError = err.Error()
+		return signals, product, seller, reviews
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 SellerTrustMapDiploma/1.0")
+
+	for key, value := range defaultFetchHeaders() {
+		req.Header.Set(key, value)
+	}
 
 	resp, err := f.httpClient.Do(req)
 	if err != nil {
-		return domain.PageSignals{}, product, seller, reviews
+		signals.FetchError = err.Error()
+		return signals, product, seller, reviews
 	}
 	defer resp.Body.Close()
 
+	signals.FetchStatusCode = resp.StatusCode
+	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnavailableForLegalReasons || resp.StatusCode == http.StatusTooManyRequests {
+		signals.FetchBlocked = true
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return domain.PageSignals{}, product, seller, reviews
+		signals.FetchError = "marketplace page fetch returned non-2xx status"
+		return signals, product, seller, reviews
 	}
 
-	bodyBytes := make([]byte, 0)
-	buf := make([]byte, 8192)
-	for {
-		n, readErr := resp.Body.Read(buf)
-		if n > 0 {
-			bodyBytes = append(bodyBytes, buf[:n]...)
-			if len(bodyBytes) > 1_200_000 {
-				break
-			}
-		}
-		if readErr != nil {
-			break
-		}
+	html, err := readResponseBody(resp)
+	if err != nil {
+		signals.FetchError = err.Error()
+		return signals, product, seller, reviews
 	}
-	html := string(bodyBytes)
-	signals := domain.PageSignals{FetchSuccessful: true}
+	signals.FetchSuccessful = true
 
 	if title := parseTitle(html); title != "" {
 		signals.ProductTitle = title
-		if len(product.Title) == 0 || strings.Contains(strings.ToLower(product.Title), "product") {
+		if isGenericTitle(product.Title) {
 			product.Title = title
 		}
 	}
@@ -136,6 +155,35 @@ func (f *PageFetcher) Enrich(ctx context.Context, rawURL string, product domain.
 	return signals, product, seller, reviews
 }
 
+func defaultFetchHeaders() map[string]string {
+	return map[string]string{
+		"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+		"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+		"Accept-Language":           "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+		"Cache-Control":             "no-cache",
+		"Pragma":                    "no-cache",
+		"Upgrade-Insecure-Requests": "1",
+	}
+}
+
+func readResponseBody(resp *http.Response) (string, error) {
+	var reader io.Reader = resp.Body
+	if strings.Contains(strings.ToLower(resp.Header.Get("Content-Encoding")), "gzip") {
+		gzipReader, err := gzip.NewReader(resp.Body)
+		if err != nil {
+			return "", err
+		}
+		defer gzipReader.Close()
+		reader = gzipReader
+	}
+
+	body, err := io.ReadAll(io.LimitReader(reader, 1_200_000))
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
 func parseTitle(html string) string {
 	match := titlePattern.FindStringSubmatch(html)
 	if len(match) < 2 {
@@ -143,6 +191,8 @@ func parseTitle(html string) string {
 	}
 	title := strings.TrimSpace(stripWhitespace(match[1]))
 	title = strings.TrimSuffix(title, " купить на OZON")
+	title = strings.TrimSuffix(title, " — купить в интернет-магазине Wildberries")
+	title = strings.TrimSuffix(title, " — Яндекс Маркет")
 	return title
 }
 
@@ -160,6 +210,53 @@ func extractStructuredData(html string) (productStructuredData, bool) {
 		}
 	}
 	return productStructuredData{}, false
+}
+
+func deriveTitleFromURL(rawURL string) string {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return ""
+	}
+	path := strings.Trim(parsed.Path, "/")
+	if path == "" {
+		return ""
+	}
+
+	segments := strings.Split(path, "/")
+	last := segments[len(segments)-1]
+	last = strings.TrimSuffix(last, ".aspx")
+	if last == "" {
+		return ""
+	}
+
+	if strings.HasPrefix(last, "product--") {
+		last = strings.TrimPrefix(last, "product--")
+	}
+	if strings.HasPrefix(last, "catalog") && len(segments) >= 2 {
+		last = segments[len(segments)-2]
+	}
+
+	last = stripTrailingID(last)
+	last = strings.ReplaceAll(last, "-", " ")
+	last = strings.ReplaceAll(last, "_", " ")
+	last = stripWhitespace(last)
+	if last == "" {
+		return ""
+	}
+	return strings.Title(last)
+}
+
+func stripTrailingID(value string) string {
+	value = strings.Trim(value, "/")
+	idx := strings.LastIndex(value, "-")
+	if idx == -1 {
+		return value
+	}
+	suffix := value[idx+1:]
+	if _, err := strconv.Atoi(suffix); err == nil {
+		return value[:idx]
+	}
+	return value
 }
 
 func parseFloat(value string) float64 {
@@ -206,5 +303,10 @@ func countSuspiciousBlocks(html string) int {
 }
 
 func stripWhitespace(value string) string {
-	return strings.Join(strings.Fields(strings.ReplaceAll(value, "\n", " ")), " ")
+	return spacePattern.ReplaceAllString(strings.TrimSpace(strings.ReplaceAll(value, "\n", " ")), " ")
+}
+
+func isGenericTitle(title string) bool {
+	lower := strings.ToLower(strings.TrimSpace(title))
+	return lower == "" || strings.Contains(lower, "product ")
 }

@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lib/pq"
-
 	"seller-trust-map/backend-go/internal/domain"
 )
 
@@ -227,14 +225,19 @@ func (r *PostgresRepository) SaveCheckResult(ctx context.Context, result domain.
 	}
 
 	const browserCheckQuery = `
-		INSERT INTO browser_checks (source_url, marketplace_id, product_id, seller_id, client_type, client_version, client_id, success)
-		VALUES ($1, $2, $3, $4, 'browser_extension', '0.2.0', $5, TRUE)
+		INSERT INTO browser_checks (
+			source_url, marketplace_id, product_id, seller_id, product_title, seller_name,
+			client_type, client_version, client_id, success
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, 'browser_extension', '0.2.0', $7, TRUE)
 	`
 	if _, err := tx.ExecContext(ctx, browserCheckQuery,
 		result.CheckedURL,
 		nullableString(marketplaceID),
 		nullableString(productDBID),
 		nullableString(sellerDBID),
+		result.Product.Title,
+		result.Seller.Name,
 		nullableString(clientID),
 	); err != nil {
 		return err
@@ -249,13 +252,13 @@ func (r *PostgresRepository) ListRecentChecks(ctx context.Context, limit int, cl
 			ts.id,
 			COALESCE(m.code::text, ar.source_url, 'unknown'),
 			COALESCE(ar.source_url, ''),
-			COALESCE(p.title, ''),
-			COALESCE(s.display_name, ''),
+			COALESCE(p.title, bc.product_title, ''),
+			COALESCE(s.display_name, bc.seller_name, ''),
 			ts.trust_score,
 			ts.trust_level,
 			ts.rating_authenticity,
 			ts.suspicious,
-			COALESCE(array_remove(array_agg(tr.reason_text), NULL), '{}')::text[],
+			COALESCE(string_agg(tr.reason_text, '||' ORDER BY tr.created_at), ''),
 			ts.created_at
 		FROM trust_snapshots ts
 		LEFT JOIN analysis_runs ar ON ar.id = ts.analysis_run_id
@@ -272,8 +275,8 @@ func (r *PostgresRepository) ListRecentChecks(ctx context.Context, limit int, cl
 		args = append(args, clientID)
 	}
 	query := baseQuery + whereClause + `
-		GROUP BY ts.id, m.code, ar.source_url, p.title, s.display_name, ts.trust_score, ts.trust_level,
-		         ts.rating_authenticity, ts.suspicious, ts.created_at
+		GROUP BY ts.id, m.code, ar.source_url, p.title, bc.product_title, s.display_name, bc.seller_name,
+		         ts.trust_score, ts.trust_level, ts.rating_authenticity, ts.suspicious, ts.created_at
 		ORDER BY ts.created_at DESC
 		LIMIT $` + fmt.Sprintf("%d", len(args)+1)
 	args = append(args, limit)
@@ -288,7 +291,7 @@ func (r *PostgresRepository) ListRecentChecks(ctx context.Context, limit int, cl
 	for rows.Next() {
 		var item domain.RecentCheck
 		var checkedAt time.Time
-		var reasons pq.StringArray
+		var reasons string
 		if err := rows.Scan(
 			&item.ID,
 			&item.Marketplace,
@@ -304,7 +307,11 @@ func (r *PostgresRepository) ListRecentChecks(ctx context.Context, limit int, cl
 		); err != nil {
 			return nil, err
 		}
-		item.Reasons = []string(reasons)
+		if strings.TrimSpace(reasons) != "" {
+			item.Reasons = strings.Split(reasons, "||")
+		} else {
+			item.Reasons = []string{}
+		}
 		item.Marketplace = normalizeMarketplaceLabel(item.Marketplace)
 		item.CheckedAt = checkedAt.Format(time.RFC3339)
 		result = append(result, item)

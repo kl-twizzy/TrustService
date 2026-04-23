@@ -413,6 +413,9 @@
       pageSignalsNode.innerHTML = "";
       const items = [
         ["HTML fetched", signals.fetch_successful ? "yes" : "no"],
+        ["Fetch status", signals.fetch_status_code || "n/a"],
+        ["Fetch blocked", signals.fetch_blocked ? "yes" : "no"],
+        ["Fetch error", signals.fetch_error || "none"],
         ["Structured data", signals.structured_data_found ? "found" : "not found"],
         ["Parsed title", signals.product_title || "not extracted"],
         ["Parsed rating", signals.parsed_rating || "n/a"],
