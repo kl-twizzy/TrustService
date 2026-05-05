@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1180" viewBox="0 0 1800 1180">
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .section { fill: #dfeaf6; rx: 18; ry: 18; }
+      .section-title { fill: #18344f; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .card { fill: #ffffff; stroke: #234c72; stroke-width: 2; rx: 14; ry: 14; }
+      .head { fill: #234c72; }
+      .title { fill: #ffffff; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .field { fill: #1f2f3d; font-family: Arial, sans-serif; font-size: 15px; }
+      .muted { fill: #5f7184; font-family: Arial, sans-serif; font-size: 14px; }
+      .main-line { stroke: #44719b; stroke-width: 3; fill: none; }
+      .soft-line { stroke: #7f9bb6; stroke-width: 2.4; fill: none; stroke-dasharray: 8 6; }
+      .label { fill: #234c72; font-family: Arial, sans-serif; font-size: 12px; font-weight: 700; }
+      .page-title { fill: #0f2133; font-family: Arial, sans-serif; font-size: 30px; font-weight: 700; }
+      .page-subtitle { fill: #516476; font-family: Arial, sans-serif; font-size: 16px; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#44719b"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1800" height="1180"/>
+
+  <text class="page-title" x="52" y="52">TrustService: PostgreSQL Database Architecture</text>
+  <text class="page-subtitle" x="52" y="82">Logical ER view for the diploma project: marketplace data, trust analytics and user check history.</text>
+
+  <rect class="section" x="40" y="120" width="470" height="980"/>
+  <text class="section-title" x="64" y="156">Reference and Catalog Data</text>
+
+  <rect class="section" x="550" y="120" width="520" height="980"/>
+  <text class="section-title" x="574" y="156">Operational Marketplace Data</text>
+
+  <rect class="section" x="1110" y="120" width="650" height="980"/>
+  <text class="section-title" x="1134" y="156">Analytics and User History</text>
+
+  <g transform="translate(70,200)">
+    <rect class="card" width="190" height="130"/>
+    <rect class="head" width="190" height="40"/>
+    <text class="title" x="16" y="26">marketplaces</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">code</text>
+    <text class="field" x="16" y="106">name, base_url</text>
+  </g>
+
+  <g transform="translate(290,200)">
+    <rect class="card" width="190" height="110"/>
+    <rect class="head" width="190" height="40"/>
+    <text class="title" x="16" y="26">product_categories</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">slug, title</text>
+  </g>
+
+  <g transform="translate(70,390)">
+    <rect class="card" width="410" height="220"/>
+    <rect class="head" width="410" height="40"/>
+    <text class="title" x="16" y="26">sellers</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK marketplace_id</text>
+    <text class="field" x="16" y="106">external_id, display_name</text>
+    <text class="field" x="16" y="128">legal_name, inn, ogrn</text>
+    <text class="field" x="16" y="150">rating, review_count</text>
+    <text class="field" x="16" y="172">total_orders, successful_orders</text>
+    <text class="field" x="16" y="194">complaints_count, returns_count</text>
+  </g>
+
+  <g transform="translate(70,680)">
+    <rect class="card" width="410" height="170"/>
+    <rect class="head" width="410" height="40"/>
+    <text class="title" x="16" y="26">seller_metrics_daily</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK seller_id</text>
+    <text class="field" x="16" y="106">metric_date</text>
+    <text class="field" x="16" y="128">rating, review_count</text>
+    <text class="field" x="16" y="150">orders, complaints, returns</text>
+  </g>
+
+  <g transform="translate(580,200)">
+    <rect class="card" width="450" height="270"/>
+    <rect class="head" width="450" height="40"/>
+    <text class="title" x="16" y="26">products</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK marketplace_id, FK seller_id</text>
+    <text class="field" x="16" y="106">FK category_id</text>
+    <text class="field" x="16" y="128">external_id, sku, title, brand</text>
+    <text class="field" x="16" y="150">current_price, old_price, currency_code</text>
+    <text class="field" x="16" y="172">rating, review_count</text>
+    <text class="field" x="16" y="194">one_star_count ... five_star_count</text>
+    <text class="field" x="16" y="216">questions_count, favorites_count</text>
+    <text class="field" x="16" y="238">purchase_count, last_seen_at</text>
+  </g>
+
+  <g transform="translate(580,530)">
+    <rect class="card" width="210" height="130"/>
+    <rect class="head" width="210" height="40"/>
+    <text class="title" x="16" y="26">product_urls</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK product_id</text>
+    <text class="field" x="16" y="106">canonical_url, is_primary</text>
+  </g>
+
+  <g transform="translate(820,530)">
+    <rect class="card" width="210" height="150"/>
+    <rect class="head" width="210" height="40"/>
+    <text class="title" x="16" y="26">reviews</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK product_id, FK seller_id</text>
+    <text class="field" x="16" y="106">rating, review_text</text>
+    <text class="field" x="16" y="128">verified_purchase, helpful_count</text>
+  </g>
+
+  <g transform="translate(580,740)">
+    <rect class="card" width="450" height="170"/>
+    <rect class="head" width="450" height="40"/>
+    <text class="title" x="16" y="26">product_metrics_daily</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK product_id</text>
+    <text class="field" x="16" y="106">metric_date, price</text>
+    <text class="field" x="16" y="128">rating, review_count</text>
+    <text class="field" x="16" y="150">one_star_count, five_star_count, favorites</text>
+  </g>
+
+  <g transform="translate(1140,200)">
+    <rect class="card" width="280" height="190"/>
+    <rect class="head" width="280" height="40"/>
+    <text class="title" x="16" y="26">analysis_runs</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK product_id, FK seller_id</text>
+    <text class="field" x="16" y="106">FK marketplace_id</text>
+    <text class="field" x="16" y="128">source_url</text>
+    <text class="field" x="16" y="150">parser_version, model_version</text>
+    <text class="field" x="16" y="172">status, error_message</text>
+  </g>
+
+  <g transform="translate(1460,200)">
+    <rect class="card" width="270" height="230"/>
+    <rect class="head" width="270" height="40"/>
+    <text class="title" x="16" y="26">trust_snapshots</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK analysis_run_id</text>
+    <text class="field" x="16" y="106">FK product_id, FK seller_id</text>
+    <text class="field" x="16" y="128">trust_score, trust_level</text>
+    <text class="field" x="16" y="150">rating_authenticity</text>
+    <text class="field" x="16" y="172">fake_review_risk, burst_risk</text>
+    <text class="field" x="16" y="194">suspicious, recommendation</text>
+  </g>
+
+  <g transform="translate(1460,500)">
+    <rect class="card" width="270" height="130"/>
+    <rect class="head" width="270" height="40"/>
+    <text class="title" x="16" y="26">trust_reasons</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK snapshot_id</text>
+    <text class="field" x="16" y="106">reason_code, severity</text>
+  </g>
+
+  <g transform="translate(1140,760)">
+    <rect class="card" width="590" height="190"/>
+    <rect class="head" width="590" height="40"/>
+    <text class="title" x="16" y="26">browser_checks</text>
+    <text class="field" x="16" y="62">PK id</text>
+    <text class="field" x="16" y="84">FK marketplace_id, FK product_id, FK seller_id</text>
+    <text class="field" x="16" y="106">source_url, product_title, seller_name</text>
+    <text class="field" x="16" y="128">checked_at, client_type, client_id, client_version</text>
+    <text class="field" x="16" y="150">success</text>
+  </g>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M260 245 L290 245"/>
+  <text class="label" x="264" y="236">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M165 330 L165 390"/>
+  <text class="label" x="176" y="366">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M385 310 L385 200 L580 200"/>
+  <text class="label" x="470" y="188">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M480 500 L580 500 L580 335"/>
+  <text class="label" x="505" y="488">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M275 610 L275 680"/>
+  <text class="label" x="286" y="652">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M805 470 L805 530"/>
+  <text class="label" x="816" y="506">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M910 470 L910 530"/>
+  <text class="label" x="921" y="506">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M805 470 L805 740"/>
+  <text class="label" x="816" y="692">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M1030 335 L1140 335"/>
+  <text class="label" x="1070" y="323">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M1420 300 L1460 300"/>
+  <text class="label" x="1428" y="288">1:N</text>
+
+  <path class="main-line" marker-end="url(#arrow)" d="M1595 430 L1595 500"/>
+  <text class="label" x="1606" y="468">1:N</text>
+
+  <path class="soft-line" marker-end="url(#arrow)" d="M1030 380 C1100 380, 1100 855, 1140 855"/>
+  <text class="label" x="1090" y="610">log</text>
+
+  <path class="soft-line" marker-end="url(#arrow)" d="M720 470 C720 920, 1240 920, 1240 760"/>
+  <text class="label" x="734" y="706">history</text>
+
+  <path class="soft-line" marker-end="url(#arrow)" d="M280 500 C560 500, 560 900, 1320 900"/>
+  <text class="label" x="540" y="520">seller used in checks</text>
+
+  <g transform="translate(60,1040)">
+    <text class="muted" x="0" y="0">Solid lines show the core analytical flow: marketplace/seller/category -&gt; products -&gt; metrics/reviews -&gt; analysis -&gt; trust snapshot.</text>
+    <text class="muted" x="0" y="24">Dashed lines show service-level history links used by the browser extension and dashboard.</text>
+  </g>
+</svg>

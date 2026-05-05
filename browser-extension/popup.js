@@ -13,13 +13,14 @@ const reasonsNode = document.getElementById("reasons");
 
 let activeTabUrl = "";
 let clientId = "";
+const SHARED_CLIENT_ID = "trustservice-local-user";
 
 init();
 
 async function init() {
-  const stored = await chrome.storage.local.get(["apiBaseUrl", "clientId"]);
+  const stored = await chrome.storage.local.get(["apiBaseUrl"]);
   const { apiBaseUrl = "http://localhost:8080" } = stored;
-  clientId = stored.clientId || `ext-${Math.random().toString(36).slice(2, 10)}`;
+  clientId = SHARED_CLIENT_ID;
   await chrome.storage.local.set({ clientId });
   apiInput.value = apiBaseUrl;
   await refreshActiveTabUrl();
@@ -34,7 +35,7 @@ checkBtn.addEventListener("click", async () => {
 
   try {
     if (!activeTabUrl || activeTabUrl.startsWith("chrome://")) {
-      throw new Error("Открой страницу товара на OZON, WB или Яндекс Маркете.");
+      throw new Error("Открой страницу товара на OZON, Wildberries или Яндекс Маркете.");
     }
 
     const response = await fetch(`${apiBaseUrl}/api/v1/trust/analyze-url`, {
@@ -54,7 +55,7 @@ checkBtn.addEventListener("click", async () => {
     try {
       data = JSON.parse(rawText);
     } catch {
-      throw new Error("API вернул не JSON. Проверь, что в поле API URL указан http://localhost:8080");
+      throw new Error("API вернул не JSON. Проверь, что в поле API URL указан адрес http://localhost:8080");
     }
 
     if (!response.ok) {

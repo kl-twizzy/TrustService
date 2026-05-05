@@ -129,14 +129,14 @@ func (s *TrustService) AnalyzeURLWithContext(ctx context.Context, rawURL string,
 	}
 
 	if pageSignals.SuspiciousTextBlocks >= 2 {
-		analysis.Warnings = append(analysis.Warnings, "Suspicious repeated review-like phrases found on the product page")
+		analysis.Warnings = append(analysis.Warnings, "На странице товара обнаружены подозрительные повторяющиеся фразы, похожие на шаблонные отзывы")
 		analysis.TrustPenalty += 6
 		if analysis.AuthenticityScore > 6 {
 			analysis.AuthenticityScore -= 6
 		}
 	}
 	if pageSignals.FetchBlocked {
-		analysis.Warnings = append(analysis.Warnings, "Marketplace blocked direct backend page fetch, URL-derived signals were used")
+		analysis.Warnings = append(analysis.Warnings, "Маркетплейс заблокировал прямую загрузку страницы, поэтому использованы сигналы, извлеченные из URL")
 	}
 
 	result := buildTrustResponse(parsed.Marketplace, seller, product, analysis)
@@ -243,22 +243,22 @@ func buildTrustResponse(marketplace string, seller domain.Seller, product domain
 
 	reasons := make([]string, 0, 6)
 	if orderSuccessRate > 0.95 {
-		reasons = append(reasons, "High share of successfully completed orders")
+		reasons = append(reasons, "Высокая доля успешно завершенных заказов")
 	}
 	if complaintRate > 0.05 {
-		reasons = append(reasons, "Elevated complaint rate for the seller")
+		reasons = append(reasons, "Повышенная доля жалоб на продавца")
 	}
 	if fiveStarRatio > 0.85 {
-		reasons = append(reasons, "Unusually high share of five-star reviews")
+		reasons = append(reasons, "Слишком высокая доля пятизвездочных отзывов")
 	}
 	if oneStarRatio > 0.08 && product.Rating > 4.6 {
-		reasons = append(reasons, "Product rating looks too high compared with one-star feedback share")
+		reasons = append(reasons, "Рейтинг товара выглядит завышенным по сравнению с долей низких оценок")
 	}
 	if analysis.TextSimilarityRisk > 0.65 {
-		reasons = append(reasons, "Review texts are too similar to each other")
+		reasons = append(reasons, "Тексты отзывов слишком похожи друг на друга")
 	}
 	if analysis.ReviewBurstRisk > 0.60 {
-		reasons = append(reasons, "Suspicious burst of review activity detected")
+		reasons = append(reasons, "Обнаружен подозрительный всплеск активности отзывов")
 	}
 	reasons = append(reasons, analysis.Warnings...)
 
@@ -304,7 +304,7 @@ func fallbackAnalysis() domain.AnalysisFactors {
 		RatingManipulation: 0.30,
 		TextSimilarityRisk: 0.25,
 		ReviewBurstRisk:    0.20,
-		Warnings:           []string{"ML service unavailable, fallback heuristic applied"},
+		Warnings:           []string{"Сервис ML временно недоступен, применена резервная эвристика"},
 		TrustPenalty:       12,
 		AuthenticityScore:  68,
 	}
@@ -335,10 +335,10 @@ func trustLevel(score int) string {
 func recommendation(level string) string {
 	switch level {
 	case "high":
-		return "Seller looks reliable. No strong signs of rating manipulation were detected."
+		return "Продавец выглядит надежным. Сильных признаков накрутки рейтинга не обнаружено."
 	case "medium":
-		return "Purchase may be acceptable, but it is worth double-checking reviews and seller history."
+		return "Покупка допустима, но стоит дополнительно проверить отзывы и историю продавца."
 	default:
-		return "Serious risk signals detected. Consider choosing another seller."
+		return "Обнаружены серьезные сигналы риска. Стоит рассмотреть другого продавца."
 	}
 }

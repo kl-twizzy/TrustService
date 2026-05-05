@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seller Trust Map Dashboard</title>
+  <title>Карта надежности продавцов</title>
   <style>
     :root {
       --bg: #f4f7fb;
@@ -224,18 +224,18 @@
     <section class="hero">
       <div class="card">
         <div class="toolbar">
-          <span class="eyebrow">Backend Demo</span>
-          <span id="clientChip" class="chip">Client: loading...</span>
+          <span class="eyebrow">Локальный сервис</span>
+          <span id="clientChip" class="chip">Пользователь: загрузка...</span>
         </div>
-        <h1>Seller Trust Map</h1>
-        <p class="subtitle">Локальный сайт сервиса. История хранится отдельно для текущего пользователя браузера, а основная логика проверки накрутки и отзывов выполняется на backend.</p>
+        <h1>Карта надежности продавцов</h1>
+        <p class="subtitle">Локальный сайт сервиса для проверки товаров на маркетплейсах. История хранится отдельно для текущего пользователя браузера, а основная логика анализа выполняется на backend.</p>
 
-        <label class="field-label" for="productUrl">Ссылка товара</label>
+        <label class="field-label" for="productUrl">Ссылка на товар</label>
         <div class="url-row">
           <input id="productUrl" type="text" placeholder="https://www.ozon.ru/product/..." />
           <button id="checkBtn">Проверить</button>
         </div>
-        <div id="status" class="helper">Вставь ссылку товара с OZON, Wildberries или Яндекс Маркета и запусти проверку.</div>
+        <div id="status" class="helper">Вставь ссылку на товар с OZON, Wildberries или Яндекс Маркета и запусти проверку.</div>
 
         <div class="stats">
           <div class="stat">
@@ -243,7 +243,7 @@
             <div id="totalChecks" class="stat-value">0</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Средний trust score</div>
+            <div class="stat-label">Средний индекс</div>
             <div id="avgTrust" class="stat-value">0</div>
           </div>
           <div class="stat">
@@ -255,23 +255,23 @@
 
       <div class="card">
         <div class="section-title">Сводка по пользователю</div>
-        <div id="summary" class="meta">Здесь будет агрегированная статистика по последним проверкам именно текущего пользователя.</div>
+        <div id="summary" class="meta">Здесь будет агрегированная статистика по последним проверкам текущего пользователя.</div>
       </div>
     </section>
 
     <section class="result-grid">
       <div class="card">
         <div class="section-title">Последний анализ товара</div>
-        <div id="resultEmpty" class="empty">Пока результатов нет. После проверки товара здесь появится детальный разбор.</div>
+        <div id="resultEmpty" class="empty">Пока результатов нет. После проверки товара здесь появится подробный разбор.</div>
         <div id="resultBlock" class="hidden">
-          <div id="trustLevelPill" class="pill">risk</div>
+          <div id="trustLevelPill" class="pill">риск</div>
           <div class="score-grid">
             <div class="score-box">
-              <div class="stat-label">Trust score</div>
+              <div class="stat-label">Индекс надежности</div>
               <div id="trustScore" class="score-value">0</div>
             </div>
             <div class="score-box">
-              <div class="stat-label">Authenticity</div>
+              <div class="stat-label">Достоверность рейтинга</div>
               <div id="authenticity" class="score-value">0</div>
             </div>
           </div>
@@ -313,7 +313,7 @@
     const clientChipNode = document.getElementById("clientChip");
 
     const clientId = getClientId();
-    clientChipNode.textContent = `Client: ${clientId}`;
+    clientChipNode.textContent = `Пользователь: ${clientId}`;
 
     checkBtn.addEventListener("click", runCheck);
     bootstrap();
@@ -326,7 +326,7 @@
     async function runCheck() {
       const productUrl = productUrlInput.value.trim();
       if (!productUrl) {
-        statusNode.textContent = "Нужно вставить ссылку товара.";
+        statusNode.textContent = "Нужно вставить ссылку на товар.";
         return;
       }
 
@@ -378,12 +378,12 @@
         node.className = "history-item";
         node.innerHTML = `
           <div class="history-top">
-            <div class="history-title">${escapeHtml(item.product_title || "Unknown product")}</div>
+            <div class="history-title">${escapeHtml(item.product_title || "Неизвестный товар")}</div>
             <div class="pill ${item.trust_level}">${trustLabel(item.trust_level)}</div>
           </div>
-          <div class="history-meta">${escapeHtml(item.seller_name || "Unknown seller")}</div>
-          <div class="history-meta">${escapeHtml(item.marketplace)} • score ${item.trust_score}/100 • authenticity ${item.rating_authenticity}/100</div>
-          <div class="history-meta">${escapeHtml(item.checked_at || "")}</div>
+          <div class="history-meta">${escapeHtml(item.seller_name || "Неизвестный продавец")}</div>
+          <div class="history-meta">${escapeHtml(humanizeMarketplace(item.marketplace))} • индекс ${item.trust_score}/100 • достоверность ${item.rating_authenticity}/100</div>
+          <div class="history-meta">${escapeHtml(formatDate(item.checked_at || ""))}</div>
         `;
         historyListNode.appendChild(node);
       }
@@ -396,7 +396,7 @@
       trustLevelPillNode.textContent = trustLabel(data.trust_level);
       trustScoreNode.textContent = `${data.trust_score}/100`;
       authenticityNode.textContent = `${data.rating_authenticity}/100`;
-      resultMetaNode.textContent = `${data.marketplace} • ${data.product.title} • ${data.seller.name}`;
+      resultMetaNode.textContent = `${humanizeMarketplace(data.marketplace)} • ${data.product.title} • ${data.seller.name}`;
       recommendationNode.textContent = data.recommendation;
 
       reasonsNode.innerHTML = "";
@@ -412,15 +412,15 @@
     function renderPageSignals(signals) {
       pageSignalsNode.innerHTML = "";
       const items = [
-        ["HTML fetched", signals.fetch_successful ? "yes" : "no"],
-        ["Fetch status", signals.fetch_status_code || "n/a"],
-        ["Fetch blocked", signals.fetch_blocked ? "yes" : "no"],
-        ["Fetch error", signals.fetch_error || "none"],
-        ["Structured data", signals.structured_data_found ? "found" : "not found"],
-        ["Parsed title", signals.product_title || "not extracted"],
-        ["Parsed rating", signals.parsed_rating || "n/a"],
-        ["Parsed reviews", signals.parsed_review_count || "n/a"],
-        ["Suspicious blocks", signals.suspicious_text_blocks || 0]
+        ["HTML страницы", signals.fetch_successful ? "получен" : "не получен"],
+        ["HTTP-статус", signals.fetch_status_code || "нет данных"],
+        ["Блокировка со стороны сайта", signals.fetch_blocked ? "да" : "нет"],
+        ["Ошибка загрузки", signals.fetch_error || "нет"],
+        ["Структурированные данные", signals.structured_data_found ? "найдены" : "не найдены"],
+        ["Название товара", signals.product_title || "не извлечено"],
+        ["Распознанный рейтинг", signals.parsed_rating || "нет данных"],
+        ["Распознанное число отзывов", signals.parsed_review_count || "нет данных"],
+        ["Подозрительные блоки текста", signals.suspicious_text_blocks || 0]
       ];
 
       for (const [label, value] of items) {
@@ -433,9 +433,9 @@
 
     function buildSummary(data) {
       if (!data.total_checks) {
-        return "После первой проверки здесь появятся агрегированные показатели по trust score, suspicious товарам и истории анализа текущего пользователя.";
+        return "После первой проверки здесь появятся агрегированные показатели по индексу надежности, подозрительным товарам и истории анализа текущего пользователя.";
       }
-      return `Проверок: ${data.total_checks}. High: ${data.high_trust_count}, Medium: ${data.medium_trust_count}, Low: ${data.low_trust_count}. Средняя достоверность рейтинга: ${Math.round(data.average_authenticity || 0)}/100.`;
+      return `Проверок: ${data.total_checks}. Низкий риск: ${data.high_trust_count}, средний риск: ${data.medium_trust_count}, высокий риск: ${data.low_trust_count}. Средняя достоверность рейтинга: ${Math.round(data.average_authenticity || 0)}/100.`;
     }
 
     function setLoading(isLoading, message) {
@@ -446,17 +446,28 @@
 
     function trustLabel(level) {
       if (level === "high") return "Низкий риск";
-      if (level === "medium") return "Умеренный риск";
+      if (level === "medium") return "Средний риск";
       return "Высокий риск";
+    }
+
+    function humanizeMarketplace(code) {
+      if (code === "ozon") return "OZON";
+      if (code === "wildberries") return "Wildberries";
+      if (code === "yandex_market") return "Яндекс Маркет";
+      return code || "Маркетплейс";
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString("ru-RU");
     }
 
     function getClientId() {
       const key = "seller-trust-map-client-id";
-      let value = localStorage.getItem(key);
-      if (!value) {
-        value = "web-" + Math.random().toString(36).slice(2, 10);
-        localStorage.setItem(key, value);
-      }
+      const value = "trustservice-local-user";
+      localStorage.setItem(key, value);
       return value;
     }
 

@@ -28,7 +28,7 @@ func ParseMarketplaceProductURL(rawURL string) (ParsedProductURL, error) {
 	case strings.Contains(host, "ozon.ru"):
 		id := lastDigits(path)
 		if id == "" {
-			return ParsedProductURL{}, errors.New("cannot extract OZON product id from url")
+			return ParsedProductURL{}, errors.New("не удалось извлечь идентификатор товара OZON из ссылки")
 		}
 		return ParsedProductURL{
 			Marketplace: "ozon",
@@ -38,7 +38,7 @@ func ParseMarketplaceProductURL(rawURL string) (ParsedProductURL, error) {
 	case strings.Contains(host, "wildberries.ru"):
 		id := firstDigits(path)
 		if id == "" {
-			return ParsedProductURL{}, errors.New("cannot extract Wildberries product id from url")
+			return ParsedProductURL{}, errors.New("не удалось извлечь идентификатор товара Wildberries из ссылки")
 		}
 		return ParsedProductURL{
 			Marketplace: "wildberries",
@@ -48,7 +48,7 @@ func ParseMarketplaceProductURL(rawURL string) (ParsedProductURL, error) {
 	case strings.Contains(host, "market.yandex.ru"):
 		id := lastDigits(path)
 		if id == "" {
-			return ParsedProductURL{}, errors.New("cannot extract Yandex Market product id from url")
+			return ParsedProductURL{}, errors.New("не удалось извлечь идентификатор товара Яндекс Маркета из ссылки")
 		}
 		return ParsedProductURL{
 			Marketplace: "yandex_market",
@@ -62,7 +62,7 @@ func ParseMarketplaceProductURL(rawURL string) (ParsedProductURL, error) {
 			Normalized:  rawURL,
 		}, nil
 	default:
-		return ParsedProductURL{}, errors.New("unsupported marketplace url")
+		return ParsedProductURL{}, errors.New("ссылка этого маркетплейса пока не поддерживается")
 	}
 }
 

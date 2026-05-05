@@ -27,7 +27,6 @@ func (h *Handler) RegisterRoutes(router *gin.Engine) {
 	router.POST("/api/v1/trust/analyze", h.analyze)
 	router.POST("/api/v1/trust/analyze-url", h.analyzeURL)
 	router.GET("/api/v1/checks/recent", h.recentChecks)
-	router.GET("/api/v1/demo/seller/:sellerID/product/:productID", h.demoAnalyze)
 }
 
 func (h *Handler) analyze(c *gin.Context) {
@@ -60,24 +59,6 @@ func (h *Handler) analyzeURL(c *gin.Context) {
 	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, result)
-}
-
-func (h *Handler) demoAnalyze(c *gin.Context) {
-	req := domain.AnalyzeRequest{
-		Marketplace: "demo-market",
-		SellerID:    c.Param("sellerID"),
-		ProductID:   c.Param("productID"),
-	}
-
-	result, err := h.trustService.AnalyzeWithContext(c.Request.Context(), req, domain.AnalyzeContext{
-		ClientID: clientIDFromRequest(c),
-	})
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 

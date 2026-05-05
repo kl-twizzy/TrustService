@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Seller Trust Map",
+  "name": "Карта надежности продавцов",
   "version": "0.2.0",
-  "description": "Checks marketplace product links and shows seller trust and rating authenticity.",
+  "description": "Проверяет товары на маркетплейсах и показывает надежность продавца и достоверность рейтинга.",
   "permissions": ["activeTab", "storage", "tabs"],
   "host_permissions": ["http://localhost:8080/*", "<all_urls>"],
   "action": {
-    "default_title": "Seller Trust Map",
+    "default_title": "Карта надежности продавцов",
     "default_popup": "popup.html"
   }
 }
